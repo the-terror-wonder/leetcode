@@ -17,7 +17,7 @@ public:
         if (dp[sum][ele] != -1) return dp[sum][ele];
 
         long long nott = f(n, x, sum, ele + 1, dp) % MOD;
-        long long take = f(n, x, sum + power(ele, x), ele + 1, dp) % MOD;
+        long long take = f(n, x, sum + pow(ele, x), ele + 1, dp) % MOD;
 
         return dp[sum][ele] = (take + nott) % MOD;
     }
