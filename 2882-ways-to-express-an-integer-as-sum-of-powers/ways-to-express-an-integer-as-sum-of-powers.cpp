@@ -9,10 +9,11 @@ public:
 
         long long ways = 0;
         int next = last + 1;
-        for (; ; next++) {
+        while(true) {
             long long num = pow(next, x);
             if (sum + num > n) break;
             ways = (ways + solve(n, x, sum + num, next, dp)) % MOD;
+            next++;
         }
 
         return dp[sum][last] = ways;
