@@ -1,29 +1,60 @@
+#include <vector>
+using namespace std;
+
 class Solution {
-public:
-    const long long MOD = 1e9 + 7;
+    static constexpr int MOD = 1e9 + 7;
+    static constexpr int MAX_N = 300;
+    static constexpr int MAX_X = 5;
 
-    long long power(long long base, int exp) {
-        long long result = 1;
-        for (int i = 0; i < exp; i++) {
-            result *= base;
+    // Precomputed answers: precomputed[n][x]
+    static vector<vector<int>> precomputed;
+
+    // Static fast integer power
+    static int ipow(int base, int exp) {
+        int res = 1;
+        while (exp--) res *= base;
+        return res;
+    }
+
+    // Build the table once
+    static vector<vector<int>> compute() {
+        vector<vector<int>> ans(MAX_N + 1, vector<int>(MAX_X + 1, 0));
+
+        for (int x = 1; x <= MAX_X; ++x) {
+            // dp[s][k] = #ways to make sum = s using exactly k distinct x-th powers
+            vector<vector<int>> dp(MAX_N + 1, vector<int>(MAX_N + 1, 0));
+            dp[0][0] = 1;
+
+            // For each possible i^x
+            for (int i = 1; ; ++i) {
+                int p = ipow(i, x);
+                if (p > MAX_N) break;
+                // 0/1-knapsack style: include this power
+                for (int s = MAX_N; s >= p; --s) {
+                    for (int k = 0; k < MAX_N; ++k) {
+                        dp[s][k+1] = (dp[s][k+1] + dp[s - p][k]) % MOD;
+                    }
+                }
+            }
+
+            // Sum over all k to get total ways for each n
+            for (int s = 0; s <= MAX_N; ++s) {
+                long long total = 0;
+                for (int k = 0; k <= MAX_N; ++k) {
+                    total = (total + dp[s][k]) % MOD;
+                }
+                ans[s][x] = (int)total;
+            }
         }
-        return result;
+
+        return ans;
     }
 
-    long long f(long long n, long long x, long long sum, long long ele, vector<vector<long long>> &dp) {
-        if (sum == n) return 1;
-        if (sum > n) return 0;
-        if (ele > n) return 0;
-        if (dp[sum][ele] != -1) return dp[sum][ele];
-
-        long long nott = f(n, x, sum, ele + 1, dp) % MOD;
-        long long take = f(n, x, sum + pow(ele, x), ele + 1, dp) % MOD;
-
-        return dp[sum][ele] = (take + nott) % MOD;
-    }
-
-    int numberOfWays(int n, int x) { 
-        vector<vector<long long>> dp(n + 1, vector<long long>(n + 1, -1));
-        return (int)f(n, x, 0, 1, dp);
+public:
+    int numberOfWays(int n, int x) {
+        return precomputed[n][x];
     }
 };
+
+// Definition of the static member
+vector<vector<int>> Solution::precomputed = Solution::compute();
